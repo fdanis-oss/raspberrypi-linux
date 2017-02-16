@@ -1,0 +1,19 @@
+/dts-v1/;
+/plugin/;
+
+/* Switch Pi3 Bluetooth function to use the Serial Device Bus on UART0.
+*/
+
+/{
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&uart0>;
+		__overlay__ {
+			bluetooth {
+				compatible = "brcm,bcm43438-bt";
+				max-speed = <115200>;
+			};
+		};
+	};
+};
