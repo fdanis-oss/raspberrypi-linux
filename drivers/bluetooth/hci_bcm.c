@@ -34,6 +34,8 @@
 #include <linux/interrupt.h>
 #include <linux/dmi.h>
 #include <linux/pm_runtime.h>
+#include <linux/of.h>
+#include <linux/of_irq.h>
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
@@ -504,6 +506,7 @@ static struct sk_buff *bcm_dequeue(struct hci_uart *hu)
 	return skb;
 }
 
+#if 0
 #ifdef CONFIG_PM
 static int bcm_suspend_device(struct device *dev)
 {
@@ -549,6 +552,7 @@ static int bcm_resume_device(struct device *dev)
 
 	return 0;
 }
+#endif
 #endif
 
 #ifdef CONFIG_PM_SLEEP
@@ -760,6 +764,18 @@ static int bcm_acpi_probe(struct bcm_device *dev)
 }
 #endif /* CONFIG_ACPI */
 
+#ifdef CONFIG_OF
+static int bcm_of_probe(struct bcm_device *dev)
+{
+	return 0;
+}
+#else
+static int bcm_of_probe(struct bcm_device *dev)
+{
+	return -EINVAL;
+}
+#endif /* CONFIG_OF */
+
 static int bcm_probe(struct platform_device *pdev)
 {
 	struct bcm_device *dev;
@@ -771,7 +787,10 @@ static int bcm_probe(struct platform_device *pdev)
 
 	dev->pdev = pdev;
 
-	ret = bcm_acpi_probe(dev);
+	if (pdev->dev.of_node)
+		ret = bcm_of_probe(dev);
+	else
+		ret = bcm_acpi_probe(dev);
 	if (ret)
 		return ret;
 
@@ -841,19 +860,34 @@ static const struct acpi_device_id bcm_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, bcm_acpi_match);
 #endif
 
+//#ifdef CONFIG_OF
+static const struct of_device_id bcm_of_match[] = {
+	{ .compatible = "brcm,bcm43438-bt", },
+	{ },
+};
+MODULE_DEVICE_TABLE(of, bcm_of_match);
+//#endif
+
+#if 0
 /* Platform suspend and resume callbacks */
 static const struct dev_pm_ops bcm_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(bcm_suspend, bcm_resume)
 	SET_RUNTIME_PM_OPS(bcm_suspend_device, bcm_resume_device, NULL)
 };
+#endif
 
 static struct platform_driver bcm_driver = {
 	.probe = bcm_probe,
 	.remove = bcm_remove,
 	.driver = {
 		.name = "hci_bcm",
+#ifdef CONFIG_ACPI
 		.acpi_match_table = ACPI_PTR(bcm_acpi_match),
-		.pm = &bcm_pm_ops,
+#endif
+//#ifdef CONFIG_OF
+		.of_match_table = of_match_ptr(bcm_of_match),
+//#endif
+//		.pm = &bcm_pm_ops,
 	},
 };
 
