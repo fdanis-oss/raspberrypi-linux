@@ -36,6 +36,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
+#include <linux/of_platform.h>
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
@@ -893,8 +894,36 @@ static struct platform_driver bcm_driver = {
 
 int __init bcm_init(void)
 {
+	struct device_node *node;
+	struct platform_device *pdev;
+	int r;
+
 	platform_driver_register(&bcm_driver);
 
+//	node = of_find_compatible_node(NULL, NULL, "brcm,bcm43438-bt");
+	node = of_find_compatible_node(NULL, NULL, "brcm,bcm2835-pl011");
+	pr_info("OF node: %p %s - %s\n", node, node->name, node->full_name);
+
+	if (!of_device_is_available(node)) {
+		pr_info("OF node not available\n");
+		goto end;
+	}
+
+	pdev = of_find_device_by_node(node);
+	if (!pdev) {
+		pr_err("Unable to find platform device\n");
+		goto end;
+	} else {
+		pr_info("platform device: %p\n", pdev);
+	}
+
+/*	r = of_platform_populate(node, NULL, NULL, &pdev->dev);
+	if (r) {
+		pr_err("Unable to populate platform module devices\n");
+		goto end;
+	}
+*/
+end:
 	return hci_uart_register_proto(&bcm_proto);
 }
 
