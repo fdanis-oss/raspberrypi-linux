@@ -195,6 +195,17 @@ bool serdev_device_get_cts(struct serdev_device *serdev)
 }
 EXPORT_SYMBOL_GPL(serdev_device_get_cts);
 
+void serdev_device_set_rts(struct serdev_device *serdev, bool enable)
+{
+	struct serdev_controller *ctrl = serdev->ctrl;
+
+	if (!ctrl || !ctrl->ops->set_rts)
+		return;
+
+	return ctrl->ops->set_rts(ctrl, enable);
+}
+EXPORT_SYMBOL_GPL(serdev_device_set_rts);
+
 static int serdev_drv_probe(struct device *dev)
 {
 	const struct serdev_device_driver *sdrv = to_serdev_device_driver(dev->driver);

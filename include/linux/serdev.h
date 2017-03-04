@@ -83,6 +83,7 @@ struct serdev_controller_ops {
 	unsigned int (*set_baudrate)(struct serdev_controller *, unsigned int);
 	void (*wait_until_sent)(struct serdev_controller *, long);
 	bool (*get_cts)(struct serdev_controller *);
+	void (*set_rts)(struct serdev_controller *, bool);
 };
 
 /**
@@ -190,6 +191,7 @@ unsigned int serdev_device_set_baudrate(struct serdev_device *, unsigned int);
 void serdev_device_set_flow_control(struct serdev_device *, bool);
 void serdev_device_wait_until_sent(struct serdev_device *, long);
 bool serdev_device_get_cts(struct serdev_device *);
+void serdev_device_set_rts(struct serdev_device *, bool);
 int serdev_device_write_buf(struct serdev_device *, const unsigned char *, size_t);
 void serdev_device_write_flush(struct serdev_device *);
 int serdev_device_write_room(struct serdev_device *);
@@ -232,6 +234,7 @@ static inline bool serdev_device_get_cts(struct serdev_device *serdev)
 {
 	return false;
 }
+static inline void serdev_device_set_rts(struct serdev_controller *serdev, bool) {}
 static inline int serdev_device_write_buf(struct serdev_device *sdev, const unsigned char *buf, size_t count)
 {
 	return -ENODEV;

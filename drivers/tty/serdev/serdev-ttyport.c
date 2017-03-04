@@ -193,6 +193,37 @@ static bool ttyport_get_cts(struct serdev_controller *ctrl)
 	return !!(status & TIOCM_CTS);
 }
 
+static void ttyport_set_rts(struct serdev_controller *ctrl, bool enable)
+{
+	struct serport *serport = serdev_controller_get_drvdata(ctrl);
+	struct tty_struct *tty = serport->tty;
+	int status = tty->driver->ops->tiocmget(tty);
+	unsigned int set = 0;
+	unsigned int clear = 0;
+
+	if (enable) {
+		set |= (TIOCM_OUT2 | TIOCM_RTS);
+		clear = ~set;
+		set &= TIOCM_DTR | TIOCM_RTS | TIOCM_OUT1 |
+		       TIOCM_OUT2 | TIOCM_LOOP;
+		clear &= TIOCM_DTR | TIOCM_RTS | TIOCM_OUT1 |
+			 TIOCM_OUT2 | TIOCM_LOOP;
+		status = tty->driver->ops->tiocmset(tty, set, clear);
+	} else {
+		set &= ~(TIOCM_OUT2 | TIOCM_RTS);
+		clear = ~set;
+		set &= TIOCM_DTR | TIOCM_RTS | TIOCM_OUT1 |
+		       TIOCM_OUT2 | TIOCM_LOOP;
+		clear &= TIOCM_DTR | TIOCM_RTS | TIOCM_OUT1 |
+			 TIOCM_OUT2 | TIOCM_LOOP;
+		status = tty->driver->ops->tiocmset(tty, set, clear);
+	}
+
+	if (status)
+		dev_err(&ctrl->dev, "failed to %s RTS: %d",
+			enable ? "enable" : "disable", status);
+}
+
 static const struct serdev_controller_ops ctrl_ops = {
 	.write_buf = ttyport_write_buf,
 	.write_flush = ttyport_write_flush,
@@ -203,6 +234,7 @@ static const struct serdev_controller_ops ctrl_ops = {
 	.set_baudrate = ttyport_set_baudrate,
 	.wait_until_sent = ttyport_wait_until_sent,
 	.get_cts = ttyport_get_cts,
+	.set_rts = ttyport_set_rts,
 };
 
 struct device *serdev_tty_port_register(struct tty_port *port,
