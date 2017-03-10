@@ -98,6 +98,8 @@ int serdev_device_open(struct serdev_device *serdev)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
 
+	dev_dbg(&serdev->dev, "\n");
+
 	if (!ctrl || !ctrl->ops->open)
 		return -EINVAL;
 
@@ -108,6 +110,8 @@ EXPORT_SYMBOL_GPL(serdev_device_open);
 void serdev_device_close(struct serdev_device *serdev)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
+
+	dev_dbg(&serdev->dev, "\n");
 
 	if (!ctrl || !ctrl->ops->close)
 		return;
@@ -121,6 +125,8 @@ int serdev_device_write_buf(struct serdev_device *serdev,
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
 
+	dev_dbg(&serdev->dev, "\n");
+
 	if (!ctrl || !ctrl->ops->write_buf)
 		return -EINVAL;
 
@@ -131,6 +137,8 @@ EXPORT_SYMBOL_GPL(serdev_device_write_buf);
 void serdev_device_write_flush(struct serdev_device *serdev)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
+
+	dev_dbg(&serdev->dev, "\n");
 
 	if (!ctrl || !ctrl->ops->write_flush)
 		return;
@@ -143,6 +151,8 @@ int serdev_device_write_room(struct serdev_device *serdev)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
 
+	dev_dbg(&serdev->dev, "\n");
+
 	if (!ctrl || !ctrl->ops->write_room)
 		return 0;
 
@@ -153,6 +163,8 @@ EXPORT_SYMBOL_GPL(serdev_device_write_room);
 unsigned int serdev_device_set_baudrate(struct serdev_device *serdev, unsigned int speed)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
+
+	dev_dbg(&serdev->dev, "\n");
 
 	if (!ctrl || !ctrl->ops->set_baudrate)
 		return 0;
@@ -166,6 +178,8 @@ void serdev_device_set_flow_control(struct serdev_device *serdev, bool enable)
 {
 	struct serdev_controller *ctrl = serdev->ctrl;
 
+	dev_dbg(&serdev->dev, "\n");
+
 	if (!ctrl || !ctrl->ops->set_flow_control)
 		return;
 
@@ -177,12 +191,16 @@ static int serdev_drv_probe(struct device *dev)
 {
 	const struct serdev_device_driver *sdrv = to_serdev_device_driver(dev->driver);
 
+	dev_dbg(dev, "\n");
+
 	return sdrv->probe(to_serdev_device(dev));
 }
 
 static int serdev_drv_remove(struct device *dev)
 {
 	const struct serdev_device_driver *sdrv = to_serdev_device_driver(dev->driver);
+
+	dev_dbg(dev, "\n");
 
 	sdrv->remove(to_serdev_device(dev));
 	return 0;

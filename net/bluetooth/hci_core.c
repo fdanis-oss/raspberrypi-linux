@@ -1444,6 +1444,8 @@ int hci_dev_open(__u16 dev)
 	if (!hdev)
 		return -ENODEV;
 
+	BT_DBG("%s", hdev->name);
+
 	/* Devices that are marked as unconfigured can only be powered
 	 * up as user channel. Trying to bring them up as normal devices
 	 * will result into a failure. Only user channel operation is

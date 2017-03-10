@@ -1380,8 +1380,10 @@ static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c,
 			  bool from_irq)
 {
 	if (unlikely(!from_irq) &&
-	    pl011_read(uap, REG_FR) & UART01x_FR_TXFF)
+		pl011_read(uap, REG_FR) & UART01x_FR_TXFF) {
+		pr_debug("pl011_tx_char: unable to transmit character\n");
 		return false; /* unable to transmit character */
+	}
 
 	pl011_write(c, uap, REG_DR);
 	uap->port.icount.tx++;
@@ -1393,6 +1395,8 @@ static void pl011_tx_chars(struct uart_amba_port *uap, bool from_irq)
 {
 	struct circ_buf *xmit = &uap->port.state->xmit;
 	int count = uap->fifosize >> 1;
+
+	pr_debug("pl011_tx_chars: count=%d\n", count);
 
 	if (uap->port.x_char) {
 		if (!pl011_tx_char(uap, uap->port.x_char, from_irq))
@@ -1948,6 +1952,8 @@ pl011_set_termios(struct uart_port *port, struct ktermios *termios,
 	unsigned int lcr_h, old_cr;
 	unsigned long flags;
 	unsigned int baud, quot, clkdiv;
+
+	pr_debug("pl011_set_termios 0x%04X 0x%04X 0x%04X %d %d\n", termios->c_iflag, termios->c_oflag, termios->c_cflag, termios->c_ispeed, termios->c_ospeed);
 
 	if (uap->vendor->oversampling)
 		clkdiv = 8;

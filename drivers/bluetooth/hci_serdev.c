@@ -88,6 +88,8 @@ restart:
 	while ((skb = hci_uart_dequeue(hu))) {
 		int len;
 
+	BT_DBG("serdev %s %p skb %p", hdev->name, hdev, skb);
+
 		len = serdev_device_write_buf(serdev, skb->data, skb->len);
 		hdev->stat.byte_tx += len;
 
@@ -113,11 +115,15 @@ static int hci_uart_open(struct hci_dev *hdev)
 {
 	struct hci_uart *hu  = hci_get_drvdata(hdev);
 
-	BT_DBG("%s %p", hdev->name, hdev);
+	BT_DBG("serdev %s %p", hdev->name, hdev);
 
 	serdev_device_set_client_ops(hu->serdev, &hci_serdev_client_ops);
 
+#if 0
 	return serdev_device_open(hu->serdev);
+#else
+	return -ENOMEM;
+#endif
 }
 
 /* Reset device */
@@ -125,7 +131,7 @@ static int hci_uart_flush(struct hci_dev *hdev)
 {
 	struct hci_uart *hu  = hci_get_drvdata(hdev);
 
-	BT_DBG("hdev %p serdev %p", hdev, hu->serdev);
+	BT_DBG("serdev hdev %p serdev %p", hdev, hu->serdev);
 
 	if (hu->tx_skb) {
 		kfree_skb(hu->tx_skb); hu->tx_skb = NULL;
@@ -145,7 +151,7 @@ static int hci_uart_close(struct hci_dev *hdev)
 {
 	struct hci_uart *hu  = hci_get_drvdata(hdev);
 
-	BT_DBG("hdev %p", hdev);
+	BT_DBG("serdev hdev %p", hdev);
 
 	hci_uart_flush(hdev);
 	hdev->flush = NULL;
@@ -160,7 +166,7 @@ static int hci_uart_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
 	struct hci_uart *hu = hci_get_drvdata(hdev);
 
-	BT_DBG("%s: type %d len %d", hdev->name, hci_skb_pkt_type(skb),
+	BT_DBG("serdev %s: type %d len %d", hdev->name, hci_skb_pkt_type(skb),
 	       skb->len);
 
 	hu->proto->enqueue(hu, skb);
@@ -178,6 +184,9 @@ static int hci_uart_setup(struct hci_dev *hdev)
 	unsigned int speed;
 	int err;
 
+	BT_DBG("");
+
+#if 0
 	/* Init speed if any */
 	if (hu->init_speed)
 		speed = hu->init_speed;
@@ -228,6 +237,9 @@ static int hci_uart_setup(struct hci_dev *hdev)
 done:
 	kfree_skb(skb);
 	return 0;
+#else
+	return -ENOMEM;
+#endif
 }
 
 /* hci_uart_write_wakeup()

@@ -92,6 +92,8 @@ static int bcm_set_baudrate(struct hci_uart *hu, unsigned int speed)
 	struct sk_buff *skb;
 	struct bcm_update_uart_baud_rate param;
 
+	bt_dev_dbg(hu->hdev, "");
+
 	if (speed > 3000000) {
 		struct bcm_write_uart_clock_setting clock;
 
@@ -382,6 +384,10 @@ static int bcm_setup(struct hci_uart *hu)
 
 	bt_dev_dbg(hu->hdev, "hu %p", hu);
 
+#if 0
+//	serdev_device_set_flow_control(hu->serdev, false);
+	serdev_device_set_baudrate(hu->serdev, 115200);
+
 	hu->hdev->set_diag = bcm_set_diag;
 	hu->hdev->set_bdaddr = btbcm_set_bdaddr;
 
@@ -438,6 +444,9 @@ finalize:
 		err = bcm_setup_sleep(hu);
 
 	return err;
+#else
+	return -ENOMEM;
+#endif
 }
 
 #define BCM_RECV_LM_DIAG \
@@ -457,6 +466,8 @@ static const struct h4_recv_pkt bcm_recv_pkts[] = {
 static int bcm_recv(struct hci_uart *hu, const void *data, int count)
 {
 	struct bcm_data *bcm = hu->priv;
+
+	bt_dev_dbg(hu->hdev, "");
 
 	if (!test_bit(HCI_UART_REGISTERED, &hu->flags))
 		return -EUNATCH;
@@ -500,6 +511,8 @@ static struct sk_buff *bcm_dequeue(struct hci_uart *hu)
 	struct bcm_data *bcm = hu->priv;
 	struct sk_buff *skb = NULL;
 	struct bcm_device *bdev = NULL;
+
+	bt_dev_dbg(hu->hdev, "");
 
 	mutex_lock(&bcm_device_lock);
 
@@ -895,10 +908,18 @@ static int bcm_serdev_probe(struct serdev_device *sdev)
 static void bcm_serdev_remove(struct serdev_device *sdev)
 {
 	struct bcm_device *dev = serdev_device_get_drvdata(sdev);
+	struct hci_uart *hu = &dev->hu;
+	struct hci_dev *hdev = hu->hdev;
 
 	mutex_lock(&bcm_device_lock);
 	list_del(&dev->list);
 	mutex_unlock(&bcm_device_lock);
+
+	cancel_work_sync(&hu->write_work);
+
+	hci_unregister_dev(hdev);
+	hci_free_dev(hdev);
+	hu->proto->close(hu);
 }
 
 static const struct hci_uart_proto bcm_proto = {
@@ -906,7 +927,7 @@ static const struct hci_uart_proto bcm_proto = {
 	.name		= "Broadcom",
 	.manufacturer	= 15,
 	.init_speed	= 115200,
-	.oper_speed	= 4000000,
+	.oper_speed	= 115200,
 	.open		= bcm_open,
 	.close		= bcm_close,
 	.flush		= bcm_flush,
