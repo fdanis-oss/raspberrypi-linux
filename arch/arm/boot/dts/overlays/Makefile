@@ -62,6 +62,8 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	pi3-disable-bt.dtbo \
 	pi3-disable-wifi.dtbo \
 	pi3-miniuart-bt.dtbo \
+	pi3-serdev-bt.dtbo \
+	pi3-miniuart-serdev-bt.dtbo \
 	piscreen.dtbo \
 	piscreen2r.dtbo \
 	pisound.dtbo \
