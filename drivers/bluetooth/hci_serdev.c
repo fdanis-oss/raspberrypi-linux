@@ -174,6 +174,7 @@ static int hci_uart_setup(struct hci_dev *hdev)
 	if (speed)
 		serdev_device_set_baudrate(hu->serdev, speed);
 
+#if 0
 	/* Operational speed if any */
 	if (hu->oper_speed)
 		speed = hu->oper_speed;
@@ -189,6 +190,7 @@ static int hci_uart_setup(struct hci_dev *hdev)
 		else
 			serdev_device_set_baudrate(hu->serdev, speed);
 	}
+#endif
 
 	if (hu->proto->setup)
 		return hu->proto->setup(hu);
