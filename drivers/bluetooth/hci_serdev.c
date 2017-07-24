@@ -163,6 +163,7 @@ static int hci_uart_setup(struct hci_dev *hdev)
 	unsigned int speed;
 	int err;
 
+#if 0
 	/* Init speed if any */
 	if (hu->init_speed)
 		speed = hu->init_speed;
@@ -213,6 +214,9 @@ static int hci_uart_setup(struct hci_dev *hdev)
 
 	kfree_skb(skb);
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 /** hci_uart_write_wakeup - transmit buffer wakeup
